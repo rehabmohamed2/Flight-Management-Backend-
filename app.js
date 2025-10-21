@@ -9,6 +9,7 @@ const errorHandler = require('./middleware/errorHandler');
 const authRoutes = require('./routes/authRoutes');
 const flightRoutes = require('./routes/flightRoutes');
 const bookingRoutes = require('./routes/bookingRoutes');
+const userRoutes = require('./routes/userRoutes');
 
 const app = express();
 
@@ -48,6 +49,7 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/flights', flightRoutes);
 app.use('/api/bookings', bookingRoutes);
+app.use('/api/users', userRoutes);
 
 // 404 Handler
 app.use((req, res, next) => {

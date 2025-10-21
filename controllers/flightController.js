@@ -1,55 +1,136 @@
-
 const Flight = require('../models/Flight');
 
-// 2. Create the function that gets all flights
-// We name it 'getAllFlights' or something similar
-const getAllFlights = async (req, res) => {
+// @desc    Get all flights
+// @route   GET /api/flights
+// @access  Public
+exports.getFlights = async (req, res, next) => {
   try {
-    // 3. Create an empty filter object
-    const filter = {};
+    const { origin, destination, date } = req.query;
 
-    // 4. Check for optional query parameters (req.query)
-    if (req.query.origin) {
-      filter.origin = req.query.origin;
+    let query = {};
+
+    // Filter by origin
+    if (origin) {
+      query.origin = new RegExp(origin, 'i');
     }
 
-    if (req.query.destination) {
-      filter.destination = req.query.destination;
+    // Filter by destination
+    if (destination) {
+      query.destination = new RegExp(destination, 'i');
     }
 
-    if (req.query.date) {
-      const startDate = new Date(req.query.date);
-      // Set to the beginning of the day (in UTC)
-      startDate.setUTCHours(0, 0, 0, 0); 
+    // Filter by departure date
+    if (date) {
+      const searchDate = new Date(date);
+      const nextDay = new Date(searchDate);
+      nextDay.setDate(nextDay.getDate() + 1);
 
-      const endDate = new Date(startDate);
-      endDate.setDate(endDate.getDate() + 1);
-
-      // Find flights where departureTime is on that day
-      filter.departureTime = {
-        $gte: startDate, // Greater than or equal to the start of the day
-        $lt: endDate    // Less than the start of the *next* day
+      query.departureTime = {
+        $gte: searchDate,
+        $lt: nextDay
       };
     }
 
-    // 5. Find flights in MongoDB using the filter
-    // If 'filter' is empty, it finds all flights
-    const flights = await Flight.find(filter);
+    const flights = await Flight.find(query).sort({ departureTime: 1 });
 
-    // 6. Send the JSON response
-    res.status(200).json(flights);
-
-  } catch (error) {
-    // 7. Send an error if anything went wrong
-    // Your 'errorHandler.js' middleware might handle this automatically,
-    // but it's good practice to send a status.
-    res.status(500).json({ message: 'Error fetching flights', error: error.message });
+    res.status(200).json({
+      success: true,
+      count: flights.length,
+      data: flights
+    });
+  } catch (err) {
+    next(err);
   }
 };
 
-// 8. Export your new function so the router can use it
-module.exports = {
-  getAllFlights,
-  // ...other functions for this controller will be added here
-  // (like getFlightById, createFlight, etc.)
+// @desc    Get single flight
+// @route   GET /api/flights/:id
+// @access  Public
+exports.getFlight = async (req, res, next) => {
+  try {
+    const flight = await Flight.findById(req.params.id);
+
+    if (!flight) {
+      return res.status(404).json({
+        success: false,
+        message: 'Flight not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: flight
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc    Create new flight
+// @route   POST /api/flights
+// @access  Private/Admin
+exports.createFlight = async (req, res, next) => {
+  try {
+    const flight = await Flight.create(req.body);
+
+    res.status(201).json({
+      success: true,
+      data: flight
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc    Update flight
+// @route   PUT /api/flights/:id
+// @access  Private/Admin
+exports.updateFlight = async (req, res, next) => {
+  try {
+    const flight = await Flight.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      {
+        new: true,
+        runValidators: true
+      }
+    );
+
+    if (!flight) {
+      return res.status(404).json({
+        success: false,
+        message: 'Flight not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: flight
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc    Delete flight
+// @route   DELETE /api/flights/:id
+// @access  Private/Admin
+exports.deleteFlight = async (req, res, next) => {
+  try {
+    const flight = await Flight.findByIdAndDelete(req.params.id);
+
+    if (!flight) {
+      return res.status(404).json({
+        success: false,
+        message: 'Flight not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {}
+    });
+  } catch (err) {
+    next(err);
+  }
 };

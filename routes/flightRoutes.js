@@ -1,18 +1,24 @@
-// In: routes/flightRoutes.js
-
 const express = require('express');
+const {
+  getFlights,
+  getFlight,
+  createFlight,
+  updateFlight,
+  deleteFlight
+} = require('../controllers/flightController');
+const { protect, authorize } = require('../middleware/auth');
+
 const router = express.Router();
 
-// 1. Import your new controller function
-const { getAllFlights } = require('../controllers/flightController');
+router
+  .route('/')
+  .get(getFlights)
+  .post(protect, authorize('admin'), createFlight);
 
-// 2. Create the route
-// When a GET request comes to '/', use the 'getAllFlights' function
-router.get('/', getAllFlights);
-
-// You might also see it written as:
-// router.route('/').get(getAllFlights);
-
-// ...other routes for flights will go here (like POST, GET /:id, etc.)
+router
+  .route('/:id')
+  .get(getFlight)
+  .put(protect, authorize('admin'), updateFlight)
+  .delete(protect, authorize('admin'), deleteFlight);
 
 module.exports = router;
