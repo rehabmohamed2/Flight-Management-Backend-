@@ -59,14 +59,6 @@ cp .env.example .env
 ```
 
 4. Configure environment variables in `.env`:
-```env
-NODE_ENV=development
-PORT=5000
-MONGODB_URI=mongodb://localhost:27017/flight_management
-JWT_SECRET=your_super_secret_jwt_key_here
-JWT_EXPIRE=7d
-CORS_ORIGIN=http://localhost:3000
-```
 
 5. Start MongoDB (if running locally)
 ```bash
