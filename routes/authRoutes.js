@@ -5,7 +5,11 @@ const {
   login,
   getMe,
   updateDetails,
-  updatePassword
+  updatePassword,
+  forgotPassword,
+  verifyOTP,
+  resetPassword,
+  changePassword
 } = require('../controllers/authController');
 const { protect } = require('../middleware/auth');
 
@@ -20,10 +24,17 @@ const registerValidation = [
     .withMessage('Password must be at least 6 characters')
 ];
 
+// Public routes
 router.post('/register', registerValidation, register);
 router.post('/login', login);
+router.post('/forgot-password', forgotPassword);
+router.post('/verify-otp', verifyOTP);
+router.post('/reset-password', resetPassword);
+
+// Protected routes
 router.get('/me', protect, getMe);
 router.put('/updatedetails', protect, updateDetails);
 router.put('/updatepassword', protect, updatePassword);
+router.patch('/change-password', protect, changePassword);
 
 module.exports = router;
