@@ -202,3 +202,47 @@ exports.cancelBooking = async (req, res, next) => {
     next(err);
   }
 };
+
+// @desc    Update booking status (Admin only)
+// @route   PATCH /api/bookings/:id/status
+// @access  Private/Admin
+exports.updateBookingStatus = async (req, res, next) => {
+  try {
+    const { status } = req.body;
+
+    if (!status) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a status'
+      });
+    }
+
+    const booking = await Booking.findById(req.params.id);
+
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: 'Booking not found'
+      });
+    }
+
+    // If changing to cancelled, return seats
+    if (status === 'cancelled' && booking.status !== 'cancelled') {
+      const flight = await Flight.findById(booking.flightId);
+      if (flight) {
+        flight.availableSeats += booking.seats;
+        await flight.save();
+      }
+    }
+
+    booking.status = status;
+    await booking.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Booking status updated successfully'
+    });
+  } catch (err) {
+    next(err);
+  }
+};

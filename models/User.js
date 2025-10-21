@@ -44,6 +44,22 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
+  resetPasswordOTP: {
+    type: String,
+    select: false
+  },
+  resetPasswordOTPExpire: {
+    type: Date,
+    select: false
+  },
+  resetPasswordToken: {
+    type: String,
+    select: false
+  },
+  resetPasswordTokenExpire: {
+    type: Date,
+    select: false
+  },
   createdAt: {
     type: Date,
     default: Date.now
@@ -71,6 +87,31 @@ userSchema.methods.getSignedJwtToken = function() {
 // Match password
 userSchema.methods.matchPassword = async function(enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
+};
+
+// Generate OTP for password reset
+userSchema.methods.generateResetOTP = function() {
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+  this.resetPasswordOTP = otp;
+  this.resetPasswordOTPExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
+
+  return otp;
+};
+
+// Generate reset token for password reset
+userSchema.methods.generateResetToken = function() {
+  const crypto = require('crypto');
+  const resetToken = crypto.randomBytes(32).toString('hex');
+
+  this.resetPasswordToken = crypto
+    .createHash('sha256')
+    .update(resetToken)
+    .digest('hex');
+
+  this.resetPasswordTokenExpire = Date.now() + 30 * 60 * 1000; // 30 minutes
+
+  return resetToken;
 };
 
 module.exports = mongoose.model('User', userSchema);
