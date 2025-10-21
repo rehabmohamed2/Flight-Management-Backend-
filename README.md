@@ -11,6 +11,24 @@ A complete Node.js + Express backend for flight management with authentication, 
 - Role-based access control (Admin & User)
 - Input validation & error handling
 - Security middleware (Helmet, CORS, Rate Limiting)
+- **Swagger UI Documentation** (Interactive API docs)
+- **Postman Collection** (Ready-to-import)
+
+## 📖 API Documentation
+
+### Swagger UI (Interactive)
+Access the Swagger documentation at:
+```
+http://localhost:5000/api-docs
+```
+
+### Postman Collection
+Import the following files into Postman:
+- `Flight-Management-API.postman_collection.json` - Complete API collection with all endpoints
+- `Flight-Management.postman_environment.json` - Environment variables
+
+### Full Documentation
+See [API_DOCUMENTATION.md](./API_DOCUMENTATION.md) for detailed API usage guide
 
 ## Tech Stack
 
@@ -20,6 +38,7 @@ A complete Node.js + Express backend for flight management with authentication, 
 - **Authentication**: JWT & bcryptjs
 - **Validation**: express-validator
 - **Security**: Helmet, CORS, express-rate-limit
+- **Documentation**: Swagger UI, Postman Collection
 
 ## Installation
 

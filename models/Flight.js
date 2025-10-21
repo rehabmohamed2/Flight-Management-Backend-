@@ -31,6 +31,11 @@ const flightSchema = new mongoose.Schema({
     required: [true, 'Please add a price'],
     min: 0
   },
+  totalSeats: {
+    type: Number,
+    required: [true, 'Please add total seats'],
+    min: 0
+  },
   availableSeats: {
     type: Number,
     required: [true, 'Please add available seats'],
