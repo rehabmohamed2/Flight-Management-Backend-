@@ -3,6 +3,7 @@ const { body } = require('express-validator');
 const {
   register,
   login,
+  googleAuth,
   getMe,
   updateDetails,
   updatePassword,
@@ -72,6 +73,32 @@ router.post('/register', registerValidation, register);
  *         description: Invalid credentials
  */
 router.post('/login', login);
+
+/**
+ * @swagger
+ * /auth/google:
+ *   post:
+ *     summary: Google OAuth login
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - credential
+ *             properties:
+ *               credential:
+ *                 type: string
+ *                 description: Google ID token
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *       401:
+ *         description: Invalid Google token
+ */
+router.post('/google', googleAuth);
 
 /**
  * @swagger

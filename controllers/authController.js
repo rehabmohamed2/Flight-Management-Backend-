@@ -2,6 +2,7 @@ const User = require('../models/User');
 const { validationResult } = require('express-validator');
 const sendEmail = require('../utils/sendEmail');
 const crypto = require('crypto');
+const { OAuth2Client } = require('google-auth-library');
 
 // @desc    Register user
 // @route   POST /api/auth/register
@@ -68,6 +69,74 @@ exports.login = async (req, res, next) => {
         success: false,
         message: 'Invalid credentials'
       });
+    }
+
+    if (!user.isActive) {
+      return res.status(401).json({
+        success: false,
+        message: 'Account is inactive'
+      });
+    }
+
+    sendTokenResponse(user, 200, res);
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc    Google OAuth login
+// @route   POST /api/auth/google
+// @access  Public
+exports.googleAuth = async (req, res, next) => {
+  try {
+    const { credential } = req.body;
+
+    if (!credential) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide Google credential'
+      });
+    }
+
+    // Verify Google token
+    const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+    let ticket;
+    try {
+      ticket = await client.verifyIdToken({
+        idToken: credential,
+        audience: process.env.GOOGLE_CLIENT_ID
+      });
+    } catch (error) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid Google token'
+      });
+    }
+
+    const payload = ticket.getPayload();
+    const { sub: googleId, email, name, picture } = payload;
+
+    // Check if user exists with this Google ID
+    let user = await User.findOne({ googleId });
+
+    if (!user) {
+      // Check if user exists with this email (regular account)
+      user = await User.findOne({ email });
+
+      if (user) {
+        // Link Google account to existing email account
+        user.googleId = googleId;
+        await user.save({ validateBeforeSave: false });
+      } else {
+        // Create new user
+        user = await User.create({
+          name,
+          email,
+          googleId,
+          isActive: true
+        });
+      }
     }
 
     if (!user.isActive) {
