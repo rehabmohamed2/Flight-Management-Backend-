@@ -1,4 +1,5 @@
 const Flight = require('../models/Flight');
+const axios = require('axios');
 
 // @desc    Get all flights
 // @route   GET /api/flights
@@ -131,6 +132,50 @@ exports.deleteFlight = async (req, res, next) => {
       data: {}
     });
   } catch (err) {
+    next(err);
+  }
+};
+
+// @desc    Search flights using Google Flights (SerpAPI)
+// @route   GET /api/flights/search/external
+// @access  Public
+exports.searchFlights = async (req, res, next) => {
+  try {
+    // Check if API key is configured
+    if (!process.env.SERPAPI_KEY) {
+      return res.status(500).json({
+        success: false,
+        message: 'SerpAPI key is not configured'
+      });
+    }
+
+    // Build params for SerpAPI
+    const params = {
+      engine: 'google_flights',
+      api_key: process.env.SERPAPI_KEY,
+      ...req.query
+    };
+
+    console.log('Searching flights with SerpAPI:', { ...params, api_key: '***' });
+
+    // Make request to SerpAPI
+    const response = await axios.get('https://serpapi.com/search', { params });
+
+    res.status(200).json({
+      success: true,
+      data: response.data
+    });
+  } catch (err) {
+    console.error('SerpAPI Error:', err.response?.data || err.message);
+
+    // Handle SerpAPI specific errors
+    if (err.response?.data?.error) {
+      return res.status(err.response.status || 500).json({
+        success: false,
+        message: err.response.data.error
+      });
+    }
+
     next(err);
   }
 };

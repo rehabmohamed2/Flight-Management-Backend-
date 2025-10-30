@@ -4,7 +4,8 @@ const {
   getFlight,
   createFlight,
   updateFlight,
-  deleteFlight
+  deleteFlight,
+  searchFlights
 } = require('../controllers/flightController');
 const { protect, authorize } = require('../middleware/auth');
 
@@ -59,6 +60,49 @@ router
   .route('/')
   .get(getFlights)
   .post(protect, authorize('admin'), createFlight);
+
+/**
+ * @swagger
+ * /flights/search/external:
+ *   get:
+ *     summary: Search flights using Google Flights API (SerpAPI)
+ *     tags: [Flights]
+ *     parameters:
+ *       - in: query
+ *         name: departure_id
+ *         schema:
+ *           type: string
+ *         description: Departure airport code (e.g., CAI for Cairo)
+ *       - in: query
+ *         name: arrival_id
+ *         schema:
+ *           type: string
+ *         description: Arrival airport code (e.g., DXB for Dubai)
+ *       - in: query
+ *         name: outbound_date
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Departure date (YYYY-MM-DD)
+ *       - in: query
+ *         name: return_date
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Return date for round trip (YYYY-MM-DD)
+ *       - in: query
+ *         name: type
+ *         schema:
+ *           type: string
+ *           enum: [1, 2, 3]
+ *         description: Flight type (1=Round trip, 2=One way, 3=Multi-city)
+ *     responses:
+ *       200:
+ *         description: Flight search results from Google Flights
+ *       500:
+ *         description: SerpAPI error or configuration issue
+ */
+router.route('/search/external').get(searchFlights);
 
 /**
  * @swagger
