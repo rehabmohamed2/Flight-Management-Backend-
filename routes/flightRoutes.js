@@ -6,9 +6,13 @@ const {
   updateFlight,
   deleteFlight
 } = require('../controllers/flightController');
+const { searchFlights } = require('../controllers/externalFlightController');
 const { protect, authorize } = require('../middleware/auth');
 
 const router = express.Router();
+
+// External flight search using SerpAPI
+router.get('/search', searchFlights);
 
 /**
  * @swagger
