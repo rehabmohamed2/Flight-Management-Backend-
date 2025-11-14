@@ -173,24 +173,34 @@ exports.getMe = async (req, res, next) => {
 // @access  Private
 exports.updateDetails = async (req, res, next) => {
   try {
-    const fieldsToUpdate = {
-      name: req.body.name,
-      email: req.body.email,
-      phoneNumber: req.body.phoneNumber,
-      dateOfBirth: req.body.dateOfBirth,
-      passportNumber: req.body.passportNumber
-    };
+    // Only include fields that are actually provided (not undefined)
+    const fieldsToUpdate = {};
+
+    if (req.body.name !== undefined) fieldsToUpdate.name = req.body.name;
+    if (req.body.email !== undefined) fieldsToUpdate.email = req.body.email;
+    if (req.body.phoneNumber !== undefined) fieldsToUpdate.phoneNumber = req.body.phoneNumber;
+    if (req.body.dateOfBirth !== undefined) fieldsToUpdate.dateOfBirth = req.body.dateOfBirth;
+    if (req.body.passportNumber !== undefined) fieldsToUpdate.passportNumber = req.body.passportNumber;
+    if (req.body.country !== undefined) fieldsToUpdate.country = req.body.country;
 
     const user = await User.findByIdAndUpdate(req.user.id, fieldsToUpdate, {
       new: true,
       runValidators: true
     });
 
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
     res.status(200).json({
       success: true,
       data: user
     });
   } catch (err) {
+    console.error('Update details error:', err);
     next(err);
   }
 };
