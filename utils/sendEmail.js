@@ -7,6 +7,7 @@ const nodemailer = require('nodemailer');
  * @param {string} options.subject - Email subject
  * @param {string} options.message - Plain text message
  * @param {string} options.html - HTML message (optional)
+ * @param {Array} options.attachments - Array of attachments (optional)
  */
 const sendEmail = async (options) => {
   try {
@@ -47,6 +48,11 @@ const sendEmail = async (options) => {
       text: options.message,
       html: htmlMessage
     };
+
+    // Add attachments if provided
+    if (options.attachments && options.attachments.length > 0) {
+      mailOptions.attachments = options.attachments;
+    }
 
     // Send email
     const info = await transporter.sendMail(mailOptions);
