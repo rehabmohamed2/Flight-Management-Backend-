@@ -7,8 +7,8 @@ const PORT = process.env.PORT || 5000;
 // Connect to Database
 connectDB();
 
-// Start Server
-const server = app.listen(PORT, () => {
+// Start Server - bind to 0.0.0.0 for containerized environments
+const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
 });
 
