@@ -13,6 +13,10 @@ const passengerSchema = new mongoose.Schema({
 
 // Sub-schema for contact details
 const contactSchema = new mongoose.Schema({
+  contactPerson: {
+    type: String,
+    trim: true
+  },
   email: {
     type: String,
     required: true,

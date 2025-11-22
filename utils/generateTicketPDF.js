@@ -1,0 +1,208 @@
+const PDFDocument = require('pdfkit');
+
+/**
+ * Generate a PDF ticket for a booking
+ * @param {Object} booking - The booking object with all details
+ * @returns {Promise<Buffer>} - PDF as a buffer
+ */
+const generateTicketPDF = (booking) => {
+  return new Promise((resolve, reject) => {
+    try {
+      const doc = new PDFDocument({ margin: 50 });
+      const buffers = [];
+
+      doc.on('data', buffers.push.bind(buffers));
+      doc.on('end', () => {
+        const pdfData = Buffer.concat(buffers);
+        resolve(pdfData);
+      });
+
+      // Header
+      doc.fillColor('#F59E0B')
+         .fontSize(28)
+         .text('FLIGHT TICKET', { align: 'center' });
+
+      doc.moveDown(0.5);
+      doc.fillColor('#6B7280')
+         .fontSize(12)
+         .text('E-Ticket Confirmation', { align: 'center' });
+
+      doc.moveDown(1);
+
+      // Booking Reference Box
+      const boxY = doc.y;
+      doc.rect(50, boxY, 515, 40)
+         .fill('#FEF3C7');
+
+      doc.fillColor('#92400E')
+         .fontSize(14)
+         .text(`Booking Reference: ${booking.bookingReference}`, 50, boxY + 12, { align: 'center', width: 515 });
+
+      doc.y = boxY + 50;
+      doc.moveDown(1);
+
+      // Flight Details Section
+      doc.fillColor('#F59E0B')
+         .fontSize(16)
+         .text('Flight Details');
+
+      doc.moveDown(0.5);
+      doc.strokeColor('#E5E7EB')
+         .lineWidth(1)
+         .moveTo(50, doc.y)
+         .lineTo(565, doc.y)
+         .stroke();
+
+      doc.moveDown(0.5);
+
+      // Get flight info from either flightId (populated) or flightDetails
+      const flightInfo = booking.flightId || booking.flightDetails || {};
+
+      doc.fillColor('#374151')
+         .fontSize(11);
+
+      const flightDetails = [
+        ['Airline', flightInfo.airline || 'N/A'],
+        ['Flight Number', flightInfo.flightNumber || 'N/A'],
+        ['From', `${flightInfo.from || flightInfo.origin || 'N/A'} (${flightInfo.fromCode || ''})`],
+        ['To', `${flightInfo.to || flightInfo.destination || 'N/A'} (${flightInfo.toCode || ''})`],
+        ['Departure', `${flightInfo.departDate || ''} ${flightInfo.departTime || ''}`],
+        ['Arrival', flightInfo.arriveTime || 'N/A'],
+        ['Duration', flightInfo.duration || 'N/A'],
+        ['Class', flightInfo.cabinClass || flightInfo.class || 'Economy'],
+      ];
+
+      flightDetails.forEach(([label, value]) => {
+        doc.font('Helvetica-Bold').text(`${label}: `, { continued: true });
+        doc.font('Helvetica').text(value);
+      });
+
+      doc.moveDown(1);
+
+      // Passenger Details Section
+      doc.fillColor('#F59E0B')
+         .fontSize(16)
+         .text('Passenger Details');
+
+      doc.moveDown(0.5);
+      doc.strokeColor('#E5E7EB')
+         .lineWidth(1)
+         .moveTo(50, doc.y)
+         .lineTo(565, doc.y)
+         .stroke();
+
+      doc.moveDown(0.5);
+      doc.fillColor('#374151')
+         .fontSize(11);
+
+      if (booking.passengerDetails && booking.passengerDetails.length > 0) {
+        booking.passengerDetails.forEach((passenger, index) => {
+          doc.font('Helvetica-Bold').text(`Passenger ${index + 1}:`, { underline: true });
+          doc.font('Helvetica')
+             .text(`Name: ${passenger.title || ''} ${passenger.firstName} ${passenger.lastName}`)
+             .text(`Type: ${passenger.type || 'Adult'}`);
+          if (passenger.passportNumber) {
+            doc.text(`Passport: ${passenger.passportNumber}`);
+          }
+          if (passenger.nationality) {
+            doc.text(`Nationality: ${passenger.nationality}`);
+          }
+          doc.moveDown(0.5);
+        });
+      } else {
+        doc.text(`Total Passengers: ${booking.seats}`);
+        if (booking.passengers) {
+          doc.text(`Adults: ${booking.passengers.adults || 0}, Children: ${booking.passengers.children || 0}, Infants: ${booking.passengers.infants || 0}`);
+        }
+      }
+
+      doc.moveDown(1);
+
+      // Contact Details Section
+      if (booking.contactDetails) {
+        doc.fillColor('#F59E0B')
+           .fontSize(16)
+           .text('Contact Information');
+
+        doc.moveDown(0.5);
+        doc.strokeColor('#E5E7EB')
+           .lineWidth(1)
+           .moveTo(50, doc.y)
+           .lineTo(565, doc.y)
+           .stroke();
+
+        doc.moveDown(0.5);
+        doc.fillColor('#374151')
+           .fontSize(11);
+
+        doc.text(`Email: ${booking.contactDetails.email || 'N/A'}`);
+        doc.text(`Phone: ${booking.contactDetails.phone || 'N/A'}`);
+        doc.text(`Country: ${booking.contactDetails.country || 'N/A'}`);
+      }
+
+      doc.moveDown(1);
+
+      // Seat & Extras Section
+      if (booking.seatAssignments && booking.seatAssignments.length > 0) {
+        doc.fillColor('#F59E0B')
+           .fontSize(16)
+           .text('Seat Assignments');
+
+        doc.moveDown(0.5);
+        doc.fillColor('#374151')
+           .fontSize(11)
+           .text(`Seats: ${booking.seatAssignments.join(', ')}`);
+        doc.moveDown(0.5);
+      }
+
+      // Pricing Section
+      if (booking.pricing) {
+        doc.fillColor('#F59E0B')
+           .fontSize(16)
+           .text('Payment Summary');
+
+        doc.moveDown(0.5);
+        doc.strokeColor('#E5E7EB')
+           .lineWidth(1)
+           .moveTo(50, doc.y)
+           .lineTo(565, doc.y)
+           .stroke();
+
+        doc.moveDown(0.5);
+        doc.fillColor('#374151')
+           .fontSize(11);
+
+        if (booking.pricing.flightCost) doc.text(`Flight Cost: $${booking.pricing.flightCost}`);
+        if (booking.pricing.mealsCost) doc.text(`Meals: $${booking.pricing.mealsCost}`);
+        if (booking.pricing.baggageCost) doc.text(`Baggage: $${booking.pricing.baggageCost}`);
+        if (booking.pricing.taxesAndFees) doc.text(`Taxes & Fees: $${booking.pricing.taxesAndFees}`);
+
+        doc.moveDown(0.5);
+        doc.font('Helvetica-Bold')
+           .fontSize(14)
+           .fillColor('#059669')
+           .text(`Total Paid: $${booking.pricing.totalCost || 0}`);
+      }
+
+      doc.moveDown(2);
+
+      // Footer
+      doc.fillColor('#9CA3AF')
+         .fontSize(9)
+         .text('This is an electronic ticket. Please present this document at check-in.', { align: 'center' })
+         .text(`Booking Status: ${booking.status.toUpperCase()}`, { align: 'center' })
+         .text(`Payment Method: ${booking.paymentMethod || 'Card'}`, { align: 'center' });
+
+      doc.moveDown(1);
+      doc.text(`Generated on: ${new Date().toLocaleString()}`, { align: 'center' });
+
+      // Finalize PDF
+      doc.end();
+
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
+module.exports = generateTicketPDF;

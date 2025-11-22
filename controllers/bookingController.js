@@ -1,5 +1,7 @@
 const Booking = require('../models/Booking');
 const Flight = require('../models/Flight');
+const sendEmail = require('../utils/sendEmail');
+const generateTicketPDF = require('../utils/generateTicketPDF');
 
 // @desc    Get all bookings
 // @route   GET /api/bookings
@@ -27,7 +29,8 @@ exports.getBookings = async (req, res, next) => {
 exports.getMyBookings = async (req, res, next) => {
   try {
     const bookings = await Booking.find({ userId: req.user.id })
-      .populate('flightId');
+      .populate('flightId')
+      .sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,
@@ -162,6 +165,75 @@ exports.createBooking = async (req, res, next) => {
     const populatedBooking = await Booking.findById(booking._id)
       .populate('userId', 'name email phoneNumber')
       .populate('flightId');
+
+    // Send confirmation email with PDF ticket
+    if (contactDetails && contactDetails.email) {
+      try {
+        // Generate PDF ticket
+        const pdfBuffer = await generateTicketPDF(populatedBooking);
+
+        // Get flight info for email
+        const flightInfo = populatedBooking.flightId || populatedBooking.flightDetails || {};
+
+        // Create email HTML
+        const emailHtml = `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <div style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); padding: 30px; text-align: center;">
+              <h1 style="color: white; margin: 0;">Booking Confirmed!</h1>
+            </div>
+            <div style="padding: 30px; background-color: #f9fafb;">
+              <div style="background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <h2 style="color: #F59E0B; margin-top: 0;">Thank you for your booking!</h2>
+                <p>Your flight has been successfully booked. Please find your e-ticket attached to this email.</p>
+
+                <div style="background: #FEF3C7; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                  <p style="margin: 0; font-weight: bold; color: #92400E;">
+                    Booking Reference: ${populatedBooking.bookingReference}
+                  </p>
+                </div>
+
+                <h3 style="color: #374151;">Flight Details:</h3>
+                <ul style="color: #6B7280; line-height: 1.8;">
+                  <li><strong>Route:</strong> ${flightInfo.from || flightInfo.origin || 'N/A'} → ${flightInfo.to || flightInfo.destination || 'N/A'}</li>
+                  <li><strong>Date:</strong> ${flightInfo.departDate || 'N/A'}</li>
+                  <li><strong>Flight:</strong> ${flightInfo.airline || 'N/A'} ${flightInfo.flightNumber || ''}</li>
+                  <li><strong>Passengers:</strong> ${populatedBooking.seats}</li>
+                  ${populatedBooking.pricing ? `<li><strong>Total Paid:</strong> $${populatedBooking.pricing.totalCost}</li>` : ''}
+                </ul>
+
+                <p style="color: #6B7280; font-size: 14px; margin-top: 20px;">
+                  Please arrive at the airport at least 2 hours before departure for domestic flights and 3 hours for international flights.
+                </p>
+              </div>
+            </div>
+            <div style="padding: 20px; text-align: center; color: #6b7280; font-size: 12px;">
+              <p>This is an automated confirmation from Flight Management System.</p>
+              <p>For any queries, please contact our support team.</p>
+            </div>
+          </div>
+        `;
+
+        // Send email with PDF attachment
+        await sendEmail({
+          email: contactDetails.email,
+          subject: `Flight Booking Confirmed - ${populatedBooking.bookingReference}`,
+          message: `Your booking ${populatedBooking.bookingReference} has been confirmed. Please find your e-ticket attached.`,
+          html: emailHtml,
+          attachments: [
+            {
+              filename: `Flight-Ticket-${populatedBooking.bookingReference}.pdf`,
+              content: pdfBuffer,
+              contentType: 'application/pdf'
+            }
+          ]
+        });
+
+        console.log(`Confirmation email sent to ${contactDetails.email}`);
+      } catch (emailError) {
+        // Log error but don't fail the booking
+        console.error('Failed to send confirmation email:', emailError.message);
+      }
+    }
 
     res.status(201).json({
       success: true,
