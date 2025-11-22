@@ -20,11 +20,23 @@ const flightSchema = new mongoose.Schema({
   },
   departureTime: {
     type: Date,
-    required: [true, 'Please add a departure time']
+    required: [true, 'Please add a departure time'],
+    validate: {
+      validator: function(v) {
+        return v > new Date();
+      },
+      message: 'Departure time must be in the future'
+    }
   },
   arrivalTime: {
     type: Date,
-    required: [true, 'Please add an arrival time']
+    required: [true, 'Please add an arrival time'],
+    validate: {
+      validator: function(v) {
+        return v > this.departureTime;
+      },
+      message: 'Arrival time must be after departure time'
+    }
   },
   price: {
     type: Number,

@@ -20,7 +20,15 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    minlength: 6,
+    minlength: [8, 'Password must be at least 8 characters'],
+    validate: {
+      validator: function(v) {
+        if (!v) return true; // Allow empty for Google OAuth users
+        // Must contain: uppercase, lowercase, number, special character
+        return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(v);
+      },
+      message: 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&)'
+    },
     select: false
   },
   googleId: {
@@ -35,7 +43,15 @@ const userSchema = new mongoose.Schema({
   },
   phoneNumber: {
     type: String,
-    trim: true
+    trim: true,
+    validate: {
+      validator: function(v) {
+        if (!v) return true; // Optional field
+        // Allow 9-15 digits to support international numbers
+        return /^\d{9,15}$/.test(v);
+      },
+      message: 'Phone number must be between 9 and 15 digits'
+    }
   },
   dateOfBirth: {
     type: Date

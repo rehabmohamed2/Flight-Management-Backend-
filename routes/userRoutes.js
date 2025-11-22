@@ -1,5 +1,6 @@
 const express = require('express');
 const {
+  createUser,
   getUsers,
   getUser,
   updateUser,
@@ -28,7 +29,8 @@ router.use(authorize('admin')); // All routes require admin role
  */
 router
   .route('/')
-  .get(getUsers);
+  .get(getUsers)
+  .post(createUser);
 
 /**
  * @swagger

@@ -6,13 +6,14 @@ const {
   createBooking,
   updateBooking,
   cancelBooking,
-  updateBookingStatus
+  updateBookingStatus,
+  deleteBooking
 } = require('../controllers/bookingController');
-const { protect, authorize } = require('../middleware/auth');
+const { protect, authorize, optionalAuth } = require('../middleware/auth');
 
 const router = express.Router();
 
-router.use(protect); // All routes require authentication
+// Note: Some routes require authentication, others don't
 
 /**
  * @swagger
@@ -46,8 +47,8 @@ router.use(protect); // All routes require authentication
  */
 router
   .route('/')
-  .get(authorize('admin'), getBookings)
-  .post(createBooking);
+  .get(protect, authorize('admin'), getBookings)
+  .post(optionalAuth, createBooking);  // Optional auth - captures user if logged in
 
 /**
  * @swagger
@@ -61,7 +62,7 @@ router
  *       200:
  *         description: User's bookings retrieved
  */
-router.get('/my-bookings', getMyBookings);
+router.get('/my-bookings', protect, getMyBookings);
 
 /**
  * @swagger
@@ -122,9 +123,9 @@ router.get('/my-bookings', getMyBookings);
  */
 router
   .route('/:id')
-  .get(getBooking)
-  .put(updateBooking)
-  .delete(cancelBooking);
+  .get(protect, getBooking)
+  .put(protect, updateBooking)
+  .delete(protect, cancelBooking);
 
 /**
  * @swagger
@@ -156,6 +157,28 @@ router
  *       403:
  *         description: Admin access required
  */
-router.patch('/:id/status', authorize('admin'), updateBookingStatus);
+router.patch('/:id/status', protect, authorize('admin'), updateBookingStatus);
+
+/**
+ * @swagger
+ * /bookings/{id}/admin:
+ *   delete:
+ *     summary: Delete booking permanently (Admin only)
+ *     tags: [Bookings]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Booking deleted successfully
+ *       403:
+ *         description: Admin access required
+ */
+router.delete('/:id/admin', protect, authorize('admin'), deleteBooking);
 
 module.exports = router;
