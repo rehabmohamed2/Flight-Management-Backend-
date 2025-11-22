@@ -16,6 +16,11 @@ const contactRoutes = require('./routes/contactRoutes');
 
 const app = express();
 
+// Trust proxy for Railway/cloud platforms (required for rate limiting)
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
+
 // Body Parser Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
