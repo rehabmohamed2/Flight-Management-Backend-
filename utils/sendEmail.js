@@ -1,7 +1,7 @@
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 
 /**
- * Send email using nodemailer
+ * Send email using Resend API
  * @param {Object} options - Email options
  * @param {string} options.email - Recipient email address
  * @param {string} options.subject - Email subject
@@ -11,16 +11,7 @@ const nodemailer = require('nodemailer');
  */
 const sendEmail = async (options) => {
   try {
-    // Create transporter
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: process.env.SMTP_PORT,
-      secure: process.env.SMTP_PORT == 465, // true for 465, false for other ports
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS
-      }
-    });
+    const resend = new Resend(process.env.RESEND_API_KEY);
 
     // Generate HTML version if not provided
     const htmlMessage = options.html || `
@@ -40,24 +31,32 @@ const sendEmail = async (options) => {
       </div>
     `;
 
-    // Email options
-    const mailOptions = {
-      from: `${process.env.FROM_NAME || 'Flight Management System'} <${process.env.FROM_EMAIL || process.env.SMTP_USER}>`,
+    // Prepare email data
+    const emailData = {
+      from: `${process.env.FROM_NAME || 'Flight Management System'} <${process.env.FROM_EMAIL || 'onboarding@resend.dev'}>`,
       to: options.email,
       subject: options.subject,
       text: options.message,
       html: htmlMessage
     };
 
-    // Add attachments if provided
+    // Add attachments if provided (convert to Resend format)
     if (options.attachments && options.attachments.length > 0) {
-      mailOptions.attachments = options.attachments;
+      emailData.attachments = options.attachments.map(att => ({
+        filename: att.filename,
+        content: att.content instanceof Buffer ? att.content : Buffer.from(att.content)
+      }));
     }
 
     // Send email
-    const info = await transporter.sendMail(mailOptions);
+    const { data, error } = await resend.emails.send(emailData);
 
-    console.log('Email sent successfully:', info.messageId);
+    if (error) {
+      console.error('Resend error:', error);
+      throw new Error(error.message);
+    }
+
+    console.log('Email sent successfully:', data.id);
     return true;
   } catch (error) {
     console.error('Error sending email:', error);
