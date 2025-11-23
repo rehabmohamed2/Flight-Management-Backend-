@@ -6,11 +6,13 @@ const SibApiV3Sdk = require('@getbrevo/brevo');
 const sendEmail = async (options) => {
   try {
     // 1. Configure the Brevo Client
-    let apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
+    const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 
-    // Set API key
-    let apiKey = apiInstance.apiClient.authentications['api-key'];
-    apiKey.apiKey = process.env.SMTP_KEY; // Make sure to add this in Railway
+    // Set API key using the correct method for newer versions
+    apiInstance.setApiKey(
+      SibApiV3Sdk.TransactionalEmailsApiApiKeys.apiKey,
+      process.env.SMTP_KEY
+    );
 
     let sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
 
