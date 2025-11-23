@@ -1,4 +1,4 @@
-const brevo = require('@getbrevo/brevo');
+const SibApiV3Sdk = require('@getbrevo/brevo');
 
 /**
  * Send email using Brevo (Sendinblue) API to bypass Railway SMTP blocks
@@ -6,12 +6,13 @@ const brevo = require('@getbrevo/brevo');
 const sendEmail = async (options) => {
   try {
     // 1. Configure the Brevo Client
-    let defaultClient = brevo.ApiClient.instance;
-    let apiKey = defaultClient.authentications['api-key'];
+    let apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
+
+    // Set API key
+    let apiKey = apiInstance.apiClient.authentications['api-key'];
     apiKey.apiKey = process.env.SMTP_KEY; // Make sure to add this in Railway
 
-    let apiInstance = new brevo.TransactionalEmailsApi();
-    let sendSmtpEmail = new brevo.SendSmtpEmail();
+    let sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
 
     // 2. Generate HTML version (Your existing template)
     const htmlMessage = options.html || `
