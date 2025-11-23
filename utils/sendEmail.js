@@ -11,7 +11,7 @@ const { Resend } = require('resend');
  */
 const sendEmail = async (options) => {
   try {
-    const resend = new Resend(process.env.SMPT_PASS);
+    const resend = new Resend(process.env.SMTP_PASS);
 
     // Generate HTML version if not provided
     const htmlMessage = options.html || `
