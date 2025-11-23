@@ -1,19 +1,19 @@
-const { Resend } = require('resend');
+const brevo = require('@getbrevo/brevo');
 
 /**
- * Send email using Resend API
- * @param {Object} options - Email options
- * @param {string} options.email - Recipient email address
- * @param {string} options.subject - Email subject
- * @param {string} options.message - Plain text message
- * @param {string} options.html - HTML message (optional)
- * @param {Array} options.attachments - Array of attachments (optional)
+ * Send email using Brevo (Sendinblue) API to bypass Railway SMTP blocks
  */
 const sendEmail = async (options) => {
   try {
-    const resend = new Resend(process.env.SMTP_PASS);
+    // 1. Configure the Brevo Client
+    let defaultClient = brevo.ApiClient.instance;
+    let apiKey = defaultClient.authentications['api-key'];
+    apiKey.apiKey = process.env.SMTP_KEY; // Make sure to add this in Railway
 
-    // Generate HTML version if not provided
+    let apiInstance = new brevo.TransactionalEmailsApi();
+    let sendSmtpEmail = new brevo.SendSmtpEmail();
+
+    // 2. Generate HTML version (Your existing template)
     const htmlMessage = options.html || `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center;">
@@ -31,35 +31,39 @@ const sendEmail = async (options) => {
       </div>
     `;
 
-    // Prepare email data
-    const emailData = {
-      from: `${process.env.FROM_NAME || 'Flight Management System'} <${process.env.FROM_EMAIL || 'onboarding@resend.dev'}>`,
-      to: options.email,
-      subject: options.subject,
-      text: options.message,
-      html: htmlMessage
+    // 3. Configure Email Data
+    // IMPORTANT: The 'email' here MUST match the one you verified in Brevo dashboard
+    sendSmtpEmail.sender = { 
+        name: process.env.FROM_NAME || 'Flight Management System', 
+        email: process.env.FROM_EMAIL // e.g., 'yourname@gmail.com'
     };
+    
+    sendSmtpEmail.to = [{ email: options.email }];
+    sendSmtpEmail.subject = options.subject;
+    sendSmtpEmail.htmlContent = htmlMessage;
+    sendSmtpEmail.textContent = options.message;
 
-    // Add attachments if provided (convert to Resend format)
+    // 4. Handle Attachments (Brevo requires Base64 content)
     if (options.attachments && options.attachments.length > 0) {
-      emailData.attachments = options.attachments.map(att => ({
-        filename: att.filename,
-        content: att.content instanceof Buffer ? att.content : Buffer.from(att.content)
+      sendSmtpEmail.attachment = options.attachments.map(att => ({
+        name: att.filename,
+        // Convert buffer to base64 string which Brevo requires
+        content: (att.content instanceof Buffer) ? att.content.toString('base64') : Buffer.from(att.content).toString('base64')
       }));
     }
 
-    // Send email
-    const { data, error } = await resend.emails.send(emailData);
+    // 5. Send via HTTP API
+    const data = await apiInstance.sendTransacEmail(sendSmtpEmail);
 
-    if (error) {
-      console.error('Resend error:', error);
-      throw new Error(error.message);
-    }
-
-    console.log('Email sent successfully:', data.id);
+    console.log('Email sent successfully via Brevo. Message ID:', data.messageId);
     return true;
+
   } catch (error) {
     console.error('Error sending email:', error);
+    // Brevo errors are often nested in error.response.body
+    if (error.response && error.response.body) {
+        console.error('Brevo specific error:', error.response.body);
+    }
     throw new Error('Email could not be sent');
   }
 };
