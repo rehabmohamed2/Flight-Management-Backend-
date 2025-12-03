@@ -129,7 +129,6 @@ const bookingSchema = new mongoose.Schema({
   }
 });
 
-// Generate booking reference before saving
 bookingSchema.pre('save', async function(next) {
   if (!this.bookingReference) {
     // Generate a unique booking reference: BK-XXXXXX
@@ -143,7 +142,6 @@ bookingSchema.pre('save', async function(next) {
         reference += chars.charAt(Math.floor(Math.random() * chars.length));
       }
 
-      // Check if reference already exists
       const existing = await this.constructor.findOne({ bookingReference: reference });
       if (!existing) {
         isUnique = true;

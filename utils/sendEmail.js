@@ -8,7 +8,6 @@ const sendEmail = async (options) => {
     // 1. Configure the Brevo Client
     const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 
-    // Set API key using the correct method for newer versions
     apiInstance.setApiKey(
       SibApiV3Sdk.TransactionalEmailsApiApiKeys.apiKey,
       process.env.SMTP_KEY

@@ -3,9 +3,6 @@ const Flight = require('../models/Flight');
 const sendEmail = require('../utils/sendEmail');
 const generateTicketPDF = require('../utils/generateTicketPDF');
 
-// @desc    Get all bookings
-// @route   GET /api/bookings
-// @access  Private/Admin
 exports.getBookings = async (req, res, next) => {
   try {
     const bookings = await Booking.find()
@@ -23,8 +20,6 @@ exports.getBookings = async (req, res, next) => {
   }
 };
 
-// @desc    Get user's bookings
-// @route   GET /api/bookings/my-bookings
 // @access  Private
 exports.getMyBookings = async (req, res, next) => {
   try {
@@ -42,9 +37,6 @@ exports.getMyBookings = async (req, res, next) => {
   }
 };
 
-// @desc    Get single booking
-// @route   GET /api/bookings/:id
-// @access  Private
 exports.getBooking = async (req, res, next) => {
   try {
     const booking = await Booking.findById(req.params.id)
@@ -58,7 +50,6 @@ exports.getBooking = async (req, res, next) => {
       });
     }
 
-    // Make sure user is booking owner or admin
     const isOwner = booking.userId && booking.userId._id && booking.userId._id.toString() === req.user.id;
     if (!isOwner && req.user.role !== 'admin') {
       return res.status(403).json({
@@ -76,9 +67,6 @@ exports.getBooking = async (req, res, next) => {
   }
 };
 
-// @desc    Create new booking
-// @route   POST /api/bookings
-// @access  Private
 exports.createBooking = async (req, res, next) => {
   try {
     const {
@@ -95,7 +83,6 @@ exports.createBooking = async (req, res, next) => {
       paymentMethod
     } = req.body;
 
-    // Validate that we have either flightId or flightDetails
     if (!flightId && !flightDetails) {
       return res.status(400).json({
         success: false,
@@ -115,7 +102,6 @@ exports.createBooking = async (req, res, next) => {
         });
       }
 
-      // Check if enough seats are available
       if (flight.availableSeats < seats) {
         return res.status(400).json({
           success: false,
@@ -124,13 +110,11 @@ exports.createBooking = async (req, res, next) => {
       }
     }
 
-    // Create booking with all details
     const bookingData = {
       seats,
       status: 'confirmed'
     };
 
-    // Add userId only if user is logged in
     if (req.user && req.user.id) {
       bookingData.userId = req.user.id;
     }
@@ -143,7 +127,6 @@ exports.createBooking = async (req, res, next) => {
       bookingData.flightDetails = flightDetails;
     }
 
-    // Add optional fields if provided
     if (passengers) bookingData.passengers = passengers;
     if (passengerDetails) bookingData.passengerDetails = passengerDetails;
     if (contactDetails) bookingData.contactDetails = contactDetails;
@@ -153,10 +136,8 @@ exports.createBooking = async (req, res, next) => {
     if (pricing) bookingData.pricing = pricing;
     if (paymentMethod) bookingData.paymentMethod = paymentMethod;
 
-    // Create the booking
     const booking = await Booking.create(bookingData);
 
-    // Update available seats only for database flights
     if (flight) {
       flight.availableSeats -= seats;
       await flight.save();
@@ -166,16 +147,12 @@ exports.createBooking = async (req, res, next) => {
       .populate('userId', 'name email phoneNumber')
       .populate('flightId');
 
-    // Send confirmation email with PDF ticket
     if (contactDetails && contactDetails.email) {
       try {
-        // Generate PDF ticket
         const pdfBuffer = await generateTicketPDF(populatedBooking);
 
-        // Get flight info for email
         const flightInfo = populatedBooking.flightId || populatedBooking.flightDetails || {};
 
-        // Create email HTML
         const emailHtml = `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <div style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); padding: 30px; text-align: center;">
@@ -213,7 +190,6 @@ exports.createBooking = async (req, res, next) => {
           </div>
         `;
 
-        // Send email with PDF attachment
         await sendEmail({
           email: contactDetails.email,
           subject: `Flight Booking Confirmed - ${populatedBooking.bookingReference}`,
@@ -245,9 +221,6 @@ exports.createBooking = async (req, res, next) => {
   }
 };
 
-// @desc    Update booking
-// @route   PUT /api/bookings/:id
-// @access  Private
 exports.updateBooking = async (req, res, next) => {
   try {
     let booking = await Booking.findById(req.params.id);
@@ -259,7 +232,6 @@ exports.updateBooking = async (req, res, next) => {
       });
     }
 
-    // Make sure user is booking owner or admin
     const isOwner = booking.userId && booking.userId.toString() === req.user.id;
     if (!isOwner && req.user.role !== 'admin') {
       return res.status(403).json({
@@ -286,9 +258,6 @@ exports.updateBooking = async (req, res, next) => {
   }
 };
 
-// @desc    Cancel booking
-// @route   DELETE /api/bookings/:id
-// @access  Private
 exports.cancelBooking = async (req, res, next) => {
   try {
     const booking = await Booking.findById(req.params.id);
@@ -316,7 +285,6 @@ exports.cancelBooking = async (req, res, next) => {
       await flight.save();
     }
 
-    // Update booking status to cancelled
     booking.status = 'cancelled';
     await booking.save();
 
@@ -329,9 +297,6 @@ exports.cancelBooking = async (req, res, next) => {
   }
 };
 
-// @desc    Delete booking permanently (Admin only)
-// @route   DELETE /api/bookings/:id/admin
-// @access  Private/Admin
 exports.deleteBooking = async (req, res, next) => {
   try {
     const booking = await Booking.findById(req.params.id);
@@ -363,8 +328,6 @@ exports.deleteBooking = async (req, res, next) => {
   }
 };
 
-// @desc    Update booking status (Admin only)
-// @route   PATCH /api/bookings/:id/status
 // @access  Private/Admin
 exports.updateBookingStatus = async (req, res, next) => {
   try {

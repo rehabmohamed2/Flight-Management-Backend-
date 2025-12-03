@@ -1,14 +1,10 @@
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 
-// @desc    Create user (Admin only)
-// @route   POST /api/users
-// @access  Private/Admin
 exports.createUser = async (req, res, next) => {
   try {
     const { name, email, password, phoneNumber, role, dateOfBirth, passportNumber, isActive } = req.body;
 
-    // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({
@@ -17,7 +13,6 @@ exports.createUser = async (req, res, next) => {
       });
     }
 
-    // Create user
     const newUser = await User.create({
       name,
       email,
@@ -41,9 +36,6 @@ exports.createUser = async (req, res, next) => {
   }
 };
 
-// @desc    Get all users
-// @route   GET /api/users
-// @access  Private/Admin
 exports.getUsers = async (req, res, next) => {
   try {
     const users = await User.find();
@@ -58,8 +50,6 @@ exports.getUsers = async (req, res, next) => {
   }
 };
 
-// @desc    Get single user
-// @route   GET /api/users/:id
 // @access  Private/Admin
 exports.getUser = async (req, res, next) => {
   try {
@@ -81,9 +71,6 @@ exports.getUser = async (req, res, next) => {
   }
 };
 
-// @desc    Update user
-// @route   PUT /api/users/:id
-// @access  Private/Admin
 exports.updateUser = async (req, res, next) => {
   try {
     const user = await User.findById(req.params.id);
@@ -95,10 +82,8 @@ exports.updateUser = async (req, res, next) => {
       });
     }
 
-    // Update fields
     const { name, email, phoneNumber, role, password, dateOfBirth, passportNumber, isActive } = req.body;
 
-    // Check if email is being changed and if new email already exists
     if (email && email !== user.email) {
       const existingUser = await User.findOne({ email });
       if (existingUser) {
@@ -134,9 +119,6 @@ exports.updateUser = async (req, res, next) => {
   }
 };
 
-// @desc    Delete user
-// @route   DELETE /api/users/:id
-// @access  Private/Admin
 exports.deleteUser = async (req, res, next) => {
   try {
     const user = await User.findByIdAndDelete(req.params.id);
