@@ -17,10 +17,10 @@
 	},
 	"item": [
 		{
-			"name": "🔐 Authentication",
+			"name": "Authentication",
 			"item": [
 				{
-					"name": "1️⃣ Register User",
+					"name": "Register User",
 					"event": [
 						{
 							"listen": "test",
@@ -57,7 +57,7 @@
 					"response": []
 				},
 				{
-					"name": "2️⃣ Login",
+					"name": "Login",
 					"event": [
 						{
 							"listen": "test",
@@ -94,7 +94,7 @@
 					"response": []
 				},
 				{
-					"name": "3️⃣ Forgot Password",
+					"name": "Forgot Password",
 					"request": {
 						"method": "POST",
 						"header": [],
@@ -116,7 +116,7 @@
 					"response": []
 				},
 				{
-					"name": "4️⃣ Verify OTP",
+					"name": "Verify OTP",
 					"event": [
 						{
 							"listen": "test",
@@ -152,7 +152,7 @@
 					"response": []
 				},
 				{
-					"name": "5️⃣ Reset Password",
+					"name": "Reset Password",
 					"request": {
 						"method": "POST",
 						"header": [],
@@ -174,7 +174,7 @@
 					"response": []
 				},
 				{
-					"name": "6️⃣ Change Password",
+					"name": "Change Password",
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -231,10 +231,10 @@
 			]
 		},
 		{
-			"name": "👤 User - Flights",
+			"name": "User - Flights",
 			"item": [
 				{
-					"name": "7️⃣ Get All Flights",
+					"name": "Get All Flights",
 					"request": {
 						"method": "GET",
 						"header": [],
@@ -285,10 +285,10 @@
 			]
 		},
 		{
-			"name": "👤 User - Bookings",
+			"name": "User - Bookings",
 			"item": [
 				{
-					"name": "8️⃣ Book a Flight",
+					"name": "Book a Flight",
 					"event": [
 						{
 							"listen": "test",
@@ -334,7 +334,7 @@
 					"response": []
 				},
 				{
-					"name": "9️⃣ View My Bookings",
+					"name": "View My Bookings",
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -357,7 +357,7 @@
 					"response": []
 				},
 				{
-					"name": "🔟 Cancel My Booking",
+					"name": "Cancel My Booking",
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -382,10 +382,10 @@
 			]
 		},
 		{
-			"name": "🛠️ Admin - Flights",
+			"name": "Admin - Flights",
 			"item": [
 				{
-					"name": "1️⃣1️⃣ Add Flight",
+					"name": "Add Flight",
 					"event": [
 						{
 							"listen": "test",
@@ -431,7 +431,7 @@
 					"response": []
 				},
 				{
-					"name": "1️⃣2️⃣ Update Flight",
+					"name": "Update Flight",
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -463,7 +463,7 @@
 					"response": []
 				},
 				{
-					"name": "1️⃣3️⃣ Delete Flight",
+					"name": "Delete Flight",
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -488,10 +488,10 @@
 			]
 		},
 		{
-			"name": "🛠️ Admin - Bookings",
+			"name": "Admin - Bookings",
 			"item": [
 				{
-					"name": "1️⃣4️⃣ View All Bookings",
+					"name": "View All Bookings",
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -514,7 +514,7 @@
 					"response": []
 				},
 				{
-					"name": "1️⃣5️⃣ Change Booking Status",
+					"name": "Change Booking Status",
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -548,10 +548,10 @@
 			]
 		},
 		{
-			"name": "🛠️ Admin - Users",
+			"name": "Admin - Users",
 			"item": [
 				{
-					"name": "1️⃣6️⃣ Get All Users",
+					"name": "Get All Users",
 					"request": {
 						"auth": {
 							"type": "bearer",
