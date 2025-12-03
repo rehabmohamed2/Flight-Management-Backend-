@@ -232,7 +232,7 @@ Authorization: Bearer <your_jwt_token>
 ### 6. Change Password (Authenticated)
 **PATCH** `/auth/change-password`
 
-**Auth Required**: ✅ Bearer Token
+**Auth Required**:  Bearer Token
 
 **Request Body**:
 ```json
@@ -255,7 +255,7 @@ Authorization: Bearer <your_jwt_token>
 ### 7. Get Current User
 **GET** `/auth/me`
 
-**Auth Required**: ✅ Bearer Token
+**Auth Required**:  Bearer Token
 
 **Response** (200):
 ```json
@@ -329,7 +329,7 @@ Authorization: Bearer <your_jwt_token>
 ### 3. Create Flight
 **POST** `/flights`
 
-**Auth Required**: ✅ Admin Only
+**Auth Required**:  Admin Only
 
 **Request Body**:
 ```json
@@ -366,7 +366,7 @@ Authorization: Bearer <your_jwt_token>
 ### 4. Update Flight
 **PUT** `/flights/:id`
 
-**Auth Required**: ✅ Admin Only
+**Auth Required**:  Admin Only
 
 **Request Body**: (any field to update)
 ```json
@@ -381,7 +381,7 @@ Authorization: Bearer <your_jwt_token>
 ### 5. Delete Flight
 **DELETE** `/flights/:id`
 
-**Auth Required**: ✅ Admin Only
+**Auth Required**:  Admin Only
 
 **Response** (200):
 ```json
@@ -398,7 +398,7 @@ Authorization: Bearer <your_jwt_token>
 ### 1. Create Booking
 **POST** `/bookings`
 
-**Auth Required**: ✅ User or Admin
+**Auth Required**:  User or Admin
 
 **Request Body**:
 ```json
@@ -436,7 +436,7 @@ Authorization: Bearer <your_jwt_token>
 ### 2. Get My Bookings
 **GET** `/bookings/my-bookings`
 
-**Auth Required**: ✅ User or Admin
+**Auth Required**:  User or Admin
 
 **Response** (200):
 ```json
@@ -463,7 +463,7 @@ Authorization: Bearer <your_jwt_token>
 ### 3. Get All Bookings
 **GET** `/bookings`
 
-**Auth Required**: ✅ Admin Only
+**Auth Required**:  Admin Only
 
 **Response** (200):
 ```json
@@ -479,14 +479,14 @@ Authorization: Bearer <your_jwt_token>
 ### 4. Get Single Booking
 **GET** `/bookings/:id`
 
-**Auth Required**: ✅ User (own booking) or Admin
+**Auth Required**:  User (own booking) or Admin
 
 ---
 
 ### 5. Update Booking
 **PUT** `/bookings/:id`
 
-**Auth Required**: ✅ User (own booking) or Admin
+**Auth Required**:  User (own booking) or Admin
 
 **Request Body**:
 ```json
@@ -501,7 +501,7 @@ Authorization: Bearer <your_jwt_token>
 ### 6. Cancel Booking
 **DELETE** `/bookings/:id`
 
-**Auth Required**: ✅ User (own booking) or Admin
+**Auth Required**: User (own booking) or Admin
 
 **Description**: Cancels booking and returns seats to flight.
 
@@ -520,28 +520,28 @@ Authorization: Bearer <your_jwt_token>
 ### 1. Get All Users
 **GET** `/users`
 
-**Auth Required**: ✅ Admin Only
+**Auth Required**:  Admin Only
 
 ---
 
 ### 2. Get Single User
 **GET** `/users/:id`
 
-**Auth Required**: ✅ Admin Only
+**Auth Required**:  Admin Only
 
 ---
 
 ### 3. Update User
 **PUT** `/users/:id`
 
-**Auth Required**: ✅ Admin Only
+**Auth Required**:  Admin Only
 
 ---
 
 ### 4. Delete User
 **DELETE** `/users/:id`
 
-**Auth Required**: ✅ Admin Only
+**Auth Required**:  Admin Only
 
 ---
 
