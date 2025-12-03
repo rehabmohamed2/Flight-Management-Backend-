@@ -10,7 +10,7 @@ const sendEmail = async (options) => {
 
     apiInstance.setApiKey(
       SibApiV3Sdk.TransactionalEmailsApiApiKeys.apiKey,
-      process.env.SMTP_KEY
+      process.env.SMTP_PASS
     );
 
     let sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
