@@ -1,15 +1,11 @@
 const Flight = require('../models/Flight');
 
-// @desc    Get all flights
-// @route   GET /api/flights
-// @access  Public
 exports.getFlights = async (req, res, next) => {
   try {
     const { origin, destination, date } = req.query;
 
     let query = {};
 
-    // Filter by origin
     if (origin) {
       query.origin = new RegExp(origin, 'i');
     }
@@ -19,7 +15,6 @@ exports.getFlights = async (req, res, next) => {
       query.destination = new RegExp(destination, 'i');
     }
 
-    // Filter by departure date
     if (date) {
       const searchDate = new Date(date);
       const nextDay = new Date(searchDate);
@@ -43,9 +38,6 @@ exports.getFlights = async (req, res, next) => {
   }
 };
 
-// @desc    Get single flight
-// @route   GET /api/flights/:id
-// @access  Public
 exports.getFlight = async (req, res, next) => {
   try {
     const flight = await Flight.findById(req.params.id);
@@ -66,8 +58,6 @@ exports.getFlight = async (req, res, next) => {
   }
 };
 
-// @desc    Create new flight
-// @route   POST /api/flights
 // @access  Private/Admin
 exports.createFlight = async (req, res, next) => {
   try {
@@ -82,9 +72,6 @@ exports.createFlight = async (req, res, next) => {
   }
 };
 
-// @desc    Update flight
-// @route   PUT /api/flights/:id
-// @access  Private/Admin
 exports.updateFlight = async (req, res, next) => {
   try {
     const flight = await Flight.findByIdAndUpdate(
@@ -112,8 +99,6 @@ exports.updateFlight = async (req, res, next) => {
   }
 };
 
-// @desc    Delete flight
-// @route   DELETE /api/flights/:id
 // @access  Private/Admin
 exports.deleteFlight = async (req, res, next) => {
   try {

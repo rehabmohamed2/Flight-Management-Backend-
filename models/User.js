@@ -114,7 +114,6 @@ userSchema.methods.matchPassword = async function(enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-// Generate OTP for password reset
 userSchema.methods.generateResetOTP = function() {
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
 

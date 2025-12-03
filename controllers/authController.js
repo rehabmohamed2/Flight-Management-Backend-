@@ -4,9 +4,6 @@ const sendEmail = require('../utils/sendEmail');
 const crypto = require('crypto');
 const { OAuth2Client } = require('google-auth-library');
 
-// @desc    Register user
-// @route   POST /api/auth/register
-// @access  Public
 exports.register = async (req, res, next) => {
   try {
     const errors = validationResult(req);
@@ -19,7 +16,6 @@ exports.register = async (req, res, next) => {
 
     const { name, email, password, role, phoneNumber, dateOfBirth, passportNumber } = req.body;
 
-    // Create user
     const user = await User.create({
       name,
       email,
@@ -36,14 +32,10 @@ exports.register = async (req, res, next) => {
   }
 };
 
-// @desc    Login user
-// @route   POST /api/auth/login
-// @access  Public
 exports.login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    // Validate email & password
     if (!email || !password) {
       return res.status(400).json({
         success: false,
@@ -51,7 +43,6 @@ exports.login = async (req, res, next) => {
       });
     }
 
-    // Check for user
     const user = await User.findOne({ email }).select('+password');
 
     if (!user) {
@@ -61,7 +52,6 @@ exports.login = async (req, res, next) => {
       });
     }
 
-    // Check if password matches
     const isMatch = await user.matchPassword(password);
 
     if (!isMatch) {
@@ -84,9 +74,6 @@ exports.login = async (req, res, next) => {
   }
 };
 
-// @desc    Google OAuth login
-// @route   POST /api/auth/google
-// @access  Public
 exports.googleAuth = async (req, res, next) => {
   try {
     const { credential } = req.body;
@@ -98,7 +85,6 @@ exports.googleAuth = async (req, res, next) => {
       });
     }
 
-    // Verify Google token
     const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
     let ticket;
@@ -117,11 +103,9 @@ exports.googleAuth = async (req, res, next) => {
     const payload = ticket.getPayload();
     const { sub: googleId, email, name, picture } = payload;
 
-    // Check if user exists with this Google ID
     let user = await User.findOne({ googleId });
 
     if (!user) {
-      // Check if user exists with this email (regular account)
       user = await User.findOne({ email });
 
       if (user) {
@@ -129,7 +113,6 @@ exports.googleAuth = async (req, res, next) => {
         user.googleId = googleId;
         await user.save({ validateBeforeSave: false });
       } else {
-        // Create new user
         user = await User.create({
           name,
           email,
@@ -152,9 +135,6 @@ exports.googleAuth = async (req, res, next) => {
   }
 };
 
-// @desc    Get current logged in user
-// @route   GET /api/auth/me
-// @access  Private
 exports.getMe = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id);
@@ -168,12 +148,8 @@ exports.getMe = async (req, res, next) => {
   }
 };
 
-// @desc    Update user details
-// @route   PUT /api/auth/updatedetails
-// @access  Private
 exports.updateDetails = async (req, res, next) => {
   try {
-    // Only include fields that are actually provided (not undefined)
     const fieldsToUpdate = {};
 
     if (req.body.name !== undefined) fieldsToUpdate.name = req.body.name;
@@ -205,14 +181,10 @@ exports.updateDetails = async (req, res, next) => {
   }
 };
 
-// @desc    Update password
-// @route   PUT /api/auth/updatepassword
-// @access  Private
 exports.updatePassword = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id).select('+password');
 
-    // Check current password
     if (!(await user.matchPassword(req.body.currentPassword))) {
       return res.status(401).json({
         success: false,
@@ -229,9 +201,6 @@ exports.updatePassword = async (req, res, next) => {
   }
 };
 
-// @desc    Forgot password - Send OTP or reset link
-// @route   POST /api/auth/forgot-password
-// @access  Public
 exports.forgotPassword = async (req, res, next) => {
   try {
     const { email, method } = req.body;
@@ -258,11 +227,9 @@ exports.forgotPassword = async (req, res, next) => {
     let resetData;
 
     if (method === 'otp') {
-      // Generate OTP
       const otp = user.generateResetOTP();
       await user.save({ validateBeforeSave: false });
 
-      // Send OTP via email
       const message = `Your password reset OTP is: ${otp}\n\nThis OTP will expire in 10 minutes.\n\nIf you did not request this, please ignore this email.`;
 
       try {
@@ -282,11 +249,9 @@ exports.forgotPassword = async (req, res, next) => {
         });
       }
     } else {
-      // Generate reset token (for email link method)
       const resetToken = user.generateResetToken();
       await user.save({ validateBeforeSave: false });
 
-      // Create reset URL
       const resetUrl = `${req.protocol}://${req.get('host')}/api/auth/reset-password/${resetToken}`;
 
       const message = `You are receiving this email because you requested a password reset.\n\nPlease click on the following link:\n\n${resetUrl}\n\nThis link will expire in 30 minutes.\n\nIf you did not request this, please ignore this email.`;
@@ -318,9 +283,6 @@ exports.forgotPassword = async (req, res, next) => {
   }
 };
 
-// @desc    Verify OTP
-// @route   POST /api/auth/verify-otp
-// @access  Public
 exports.verifyOTP = async (req, res, next) => {
   try {
     const { email, otp } = req.body;
@@ -345,10 +307,8 @@ exports.verifyOTP = async (req, res, next) => {
       });
     }
 
-    // Generate a temporary reset token for the user to use
     const resetToken = user.generateResetToken();
 
-    // Clear OTP fields
     user.resetPasswordOTP = undefined;
     user.resetPasswordOTPExpire = undefined;
 
@@ -364,9 +324,6 @@ exports.verifyOTP = async (req, res, next) => {
   }
 };
 
-// @desc    Reset password
-// @route   POST /api/auth/reset-password
-// @access  Public
 exports.resetPassword = async (req, res, next) => {
   try {
     const { resetToken, email, otp, newPassword } = req.body;
@@ -380,7 +337,6 @@ exports.resetPassword = async (req, res, next) => {
 
     let user;
 
-    // Method 1: Using reset token
     if (resetToken) {
       const hashedToken = crypto
         .createHash('sha256')
@@ -391,9 +347,7 @@ exports.resetPassword = async (req, res, next) => {
         resetPasswordToken: hashedToken,
         resetPasswordTokenExpire: { $gt: Date.now() }
       });
-    }
-    // Method 2: Using OTP directly
-    else if (email && otp) {
+    } else if (email && otp) {
       user = await User.findOne({
         email,
         resetPasswordOTP: otp,
@@ -413,7 +367,6 @@ exports.resetPassword = async (req, res, next) => {
       });
     }
 
-    // Set new password
     user.password = newPassword;
     user.resetPasswordOTP = undefined;
     user.resetPasswordOTPExpire = undefined;
@@ -430,9 +383,6 @@ exports.resetPassword = async (req, res, next) => {
   }
 };
 
-// @desc    Change password (authenticated users)
-// @route   PATCH /api/auth/change-password
-// @access  Private
 exports.changePassword = async (req, res, next) => {
   try {
     const { currentPassword, newPassword } = req.body;
@@ -446,7 +396,6 @@ exports.changePassword = async (req, res, next) => {
 
     const user = await User.findById(req.user.id).select('+password');
 
-    // Check current password
     if (!(await user.matchPassword(currentPassword))) {
       return res.status(401).json({
         success: false,
@@ -466,9 +415,7 @@ exports.changePassword = async (req, res, next) => {
   }
 };
 
-// Helper function to get token from model, create cookie and send response
 const sendTokenResponse = (user, statusCode, res) => {
-  // Create token
   const token = user.getSignedJwtToken();
 
   res.status(statusCode).json({

@@ -1,13 +1,9 @@
 const sendEmail = require('../utils/sendEmail');
 
-// @desc    Send contact form email to admin
-// @route   POST /api/contact
-// @access  Public
 exports.sendContactEmail = async (req, res, next) => {
   try {
     const { name, email, subject, message } = req.body;
 
-    // Validate required fields
     if (!name || !email || !message) {
       return res.status(400).json({
         success: false,
@@ -75,7 +71,6 @@ exports.sendContactEmail = async (req, res, next) => {
       </div>
     `;
 
-    // Send email to admins
     await sendEmail({
       email: adminEmails.join(', '),
       subject: emailSubject,

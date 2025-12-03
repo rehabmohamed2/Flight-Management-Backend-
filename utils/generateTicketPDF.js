@@ -55,7 +55,6 @@ const generateTicketPDF = (booking) => {
 
       doc.moveDown(0.5);
 
-      // Get flight info from either flightId (populated) or flightDetails
       const flightInfo = booking.flightId || booking.flightDetails || {};
 
       doc.fillColor('#374151')

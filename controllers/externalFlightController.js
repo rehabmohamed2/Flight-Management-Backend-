@@ -1,13 +1,9 @@
 const axios = require('axios');
 
-// @desc    Search flights using SerpAPI (Google Flights)
-// @route   GET /api/flights/search
-// @access  Public
 exports.searchFlights = async (req, res, next) => {
   try {
     const { origin, destination, date, passengers, cabin, returnDate } = req.query;
 
-    // Validate required parameters
     if (!origin || !destination || !date) {
       return res.status(400).json({
         success: false,
@@ -33,12 +29,10 @@ exports.searchFlights = async (req, res, next) => {
       hl: 'en'
     };
 
-    // Add cabin class if provided
     if (cabin) {
       params.travel_class = cabin === 'Economy' ? '1' : cabin === 'Business' ? '2' : '3';
     }
 
-    // Set trip type: one-way by default, round trip if return date provided
     if (returnDate) {
       params.type = '1'; // Round trip
       params.return_date = returnDate;
@@ -49,7 +43,6 @@ exports.searchFlights = async (req, res, next) => {
     // Call SerpAPI from backend (no CORS issues)
     const response = await axios.get(serpApiUrl, { params });
 
-    // Return the data to frontend
     res.status(200).json({
       success: true,
       data: response.data
