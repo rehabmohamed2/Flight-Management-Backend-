@@ -7,7 +7,7 @@ const sendEmail = async (options) => {
   try {
     // 1. Configure the Brevo Client
     const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
-
+    
     apiInstance.setApiKey(
       SibApiV3Sdk.TransactionalEmailsApiApiKeys.apiKey,
       process.env.SMTP_PASS
@@ -40,7 +40,16 @@ const sendEmail = async (options) => {
         email: process.env.FROM_EMAIL // e.g., 'yourname@gmail.com'
     };
     
-    sendSmtpEmail.to = [{ email: options.email }];
+    //sendSmtpEmail.to = [{ email: options.email }];
+
+    // Check if options.email contains a comma (multiple recipients)
+    if (options.email.includes(',')) {
+        // Split the string by comma, trim spaces, and create an object for each
+        sendSmtpEmail.to = options.email.split(',').map(email => ({ email: email.trim() }));
+    } else {
+        // Single recipient
+        sendSmtpEmail.to = [{ email: options.email }];
+    }
     sendSmtpEmail.subject = options.subject;
     sendSmtpEmail.htmlContent = htmlMessage;
     sendSmtpEmail.textContent = options.message;

@@ -1,4 +1,4 @@
-const sendEmail = require('../utils/sendEmail');
+const sendEmail = require("../utils/sendEmail");
 
 exports.sendContactEmail = async (req, res, next) => {
   try {
@@ -7,7 +7,7 @@ exports.sendContactEmail = async (req, res, next) => {
     if (!name || !email || !message) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide name, email, and message'
+        message: "Please provide name, email, and message",
       });
     }
 
@@ -16,12 +16,19 @@ exports.sendContactEmail = async (req, res, next) => {
     if (!emailRegex.test(email)) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide a valid email address'
+        message: "Please provide a valid email address",
       });
     }
 
     // Admin emails to receive contact messages
-    const adminEmails = ['rehabmohamed151220@gmail.com', 'kimoshalby1105@gmail.com'];
+    const adminEmails = [
+      "rehabmohamed151220@gmail.com",
+      "kimoshalby1105@gmail.com",
+      "davidamir1808@gmail.com",
+      "kerolosakmal@gmail.com",
+      "faresmetwaly10@gmail.com",
+      "youssef.mohammed.hasan@gmail.com"
+    ];
 
     // Email subject
     const emailSubject = subject
@@ -44,12 +51,16 @@ exports.sendContactEmail = async (req, res, next) => {
             </p>
           </div>
 
-          ${subject ? `
+          ${
+            subject
+              ? `
           <div style="margin-bottom: 20px;">
             <h3 style="color: #374151; margin: 0 0 10px 0; font-size: 16px;">Subject:</h3>
             <p style="color: #6b7280; margin: 0; font-size: 14px;">${subject}</p>
           </div>
-          ` : ''}
+          `
+              : ""
+          }
 
           <div style="margin-bottom: 20px;">
             <h3 style="color: #374151; margin: 0 0 10px 0; font-size: 16px;">Message:</h3>
@@ -72,21 +83,20 @@ exports.sendContactEmail = async (req, res, next) => {
     `;
 
     await sendEmail({
-      email: adminEmails.join(', '),
+      email: adminEmails.join(", "),
       subject: emailSubject,
-      html: htmlContent
+      html: htmlContent,
     });
 
     res.status(200).json({
       success: true,
-      message: 'Your message has been sent successfully'
+      message: "Your message has been sent successfully",
     });
-
   } catch (err) {
-    console.error('Contact email error:', err);
+    console.error("Contact email error:", err);
     res.status(500).json({
       success: false,
-      message: 'Failed to send message. Please try again later.'
+      message: "Failed to send message. Please try again later.",
     });
   }
 };
