@@ -415,13 +415,116 @@ exports.changePassword = async (req, res, next) => {
   }
 };
 
-const sendTokenResponse = (user, statusCode, res) => {
+exports.refreshToken = async (req, res, next) => {
+  try {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a refresh token'
+      });
+    }
+
+    // Verify refresh token
+    const jwt = require('jsonwebtoken');
+    let decoded;
+    try {
+      decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET);
+    } catch (err) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid or expired refresh token'
+      });
+    }
+
+    // Find user and verify refresh token matches
+    const user = await User.findById(decoded.id).select('+refreshToken +refreshTokenExpire');
+
+    if (!user || user.refreshToken !== refreshToken) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid refresh token'
+      });
+    }
+
+    // Check if refresh token has expired
+    if (user.refreshTokenExpire < Date.now()) {
+      return res.status(401).json({
+        success: false,
+        message: 'Refresh token has expired. Please login again.'
+      });
+    }
+
+    // Generate new tokens
+    const newAccessToken = user.getSignedJwtToken();
+    const newRefreshToken = user.generateRefreshToken();
+
+    // Update refresh token in database (token rotation)
+    user.refreshToken = newRefreshToken;
+    user.refreshTokenExpire = Date.now() + (30 * 24 * 60 * 60 * 1000); // 30 days
+    await user.save({ validateBeforeSave: false });
+
+    res.status(200).json({
+      success: true,
+      message: 'Tokens refreshed successfully',
+      token: newAccessToken,
+      refreshToken: newRefreshToken,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.logout = async (req, res, next) => {
+  try {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      return res.status(200).json({
+        success: true,
+        message: 'Logged out successfully'
+      });
+    }
+
+    // Find user with this refresh token and clear it
+    const user = await User.findOne({ refreshToken }).select('+refreshToken');
+
+    if (user) {
+      user.refreshToken = undefined;
+      user.refreshTokenExpire = undefined;
+      await user.save({ validateBeforeSave: false });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Logged out successfully'
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+const sendTokenResponse = async (user, statusCode, res) => {
   const token = user.getSignedJwtToken();
+  const refreshToken = user.generateRefreshToken();
+
+  // Save refresh token to database
+  user.refreshToken = refreshToken;
+  user.refreshTokenExpire = Date.now() + (30 * 24 * 60 * 60 * 1000); // 30 days
+  await user.save({ validateBeforeSave: false });
 
   res.status(statusCode).json({
     success: true,
     message: statusCode === 201 ? 'User registered successfully' : 'Login successful',
     token,
+    refreshToken,
     user: {
       id: user._id,
       name: user.name,

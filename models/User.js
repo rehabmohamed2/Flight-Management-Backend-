@@ -84,6 +84,14 @@ const userSchema = new mongoose.Schema({
     type: Date,
     select: false
   },
+  refreshToken: {
+    type: String,
+    select: false
+  },
+  refreshTokenExpire: {
+    type: Date,
+    select: false
+  },
   createdAt: {
     type: Date,
     default: Date.now
@@ -136,6 +144,15 @@ userSchema.methods.generateResetToken = function() {
   this.resetPasswordTokenExpire = Date.now() + 30 * 60 * 1000; // 30 minutes
 
   return resetToken;
+};
+
+// Generate refresh token
+userSchema.methods.generateRefreshToken = function() {
+  return jwt.sign(
+    { id: this._id },
+    process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET,
+    { expiresIn: process.env.JWT_REFRESH_EXPIRE || '30d' }
+  );
 };
 
 module.exports = mongoose.model('User', userSchema);
